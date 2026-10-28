@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.streamlit/secrets.toml
+.env
+# 규정 원본 파일은 저장소에 올리지 않음 (폴더 구조만 유지)
+regulations/*
+!regulations/.gitkeep
+.index_cache/
