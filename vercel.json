@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/chat.py": { "maxDuration": 60, "includeFiles": ".index_cache/chunks_*.json" },
+    "api/info.py": { "includeFiles": ".index_cache/chunks_*.json" }
+  }
+}

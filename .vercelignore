@@ -1,0 +1,7 @@
+# 서버리스 함수는 미리 만든 청크 캐시(.index_cache)만 읽으므로 원본 PDF 등은 올리지 않는다
+regulations/
+streamlit_app.py
+scripts/
+.streamlit/
+.index_cache/embeddings_*
+*.md

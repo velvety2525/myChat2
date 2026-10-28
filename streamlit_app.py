@@ -1,17 +1,14 @@
 """규정 기반 RAG 챗봇 (Streamlit)."""
 from __future__ import annotations
 
-import dataclasses
-import hashlib
-import json
 import os
 from pathlib import Path
 
 import streamlit as st
 
-from rag.chunker import Chunk, chunk_document
+from rag.index import build_chunks
 from rag.llm import CLAUDE_MODELS, GEMINI_MODELS, build_user_message, stream_claude, stream_gemini
-from rag.loader import SUPPORTED_EXTS, list_files, load_document
+from rag.loader import SUPPORTED_EXTS, list_files
 from rag.retriever import GeminiEmbedder, Retriever
 
 APP_DIR = Path(__file__).parent
@@ -29,42 +26,9 @@ def _secret(name: str) -> str:
         return os.environ.get(name, "")
 
 
-def load_chunks_cached(path: Path, root: Path) -> list[Chunk]:
-    """큰 PDF는 읽는 데 수 분이 걸리므로 파일별 청크 결과를 디스크에 캐시한다.
-
-    키는 파일 내용 해시라서 git clone 후(수정 시각이 바뀌어도) 저장소에 커밋된 캐시를 그대로 쓸 수 있다.
-    """
-    content_hash = hashlib.sha1(path.read_bytes()).hexdigest()
-    key = hashlib.sha1(f"v1|{path.relative_to(root)}|{content_hash}".encode()).hexdigest()
-    cache_file = CACHE_DIR / f"chunks_{key}.json"
-    try:
-        return [Chunk(**c) for c in json.loads(cache_file.read_text(encoding="utf-8"))]
-    except (OSError, ValueError, TypeError):
-        pass
-    doc = load_document(path, root)
-    if not doc or not doc.text.strip():
-        return []
-    chunks = chunk_document(doc, start_id=0)
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    cache_file.write_text(json.dumps([dataclasses.asdict(c) for c in chunks], ensure_ascii=False), encoding="utf-8")
-    return chunks
-
-
 @st.cache_resource(show_spinner="규정 문서를 읽고 색인하는 중... (큰 PDF는 처음 한 번만 수 분 걸립니다)")
 def build_index(docs_dir: str, fingerprint: tuple, gemini_key: str | None):
-    root = Path(docs_dir)
-    chunks, errors = [], []
-    for path in list_files(root):
-        try:
-            file_chunks = load_chunks_cached(path, root)
-        except Exception as e:  # 손상된 파일 하나 때문에 전체가 멈추지 않도록
-            errors.append(f"{path.name}: {e}")
-            continue
-        if not file_chunks:
-            errors.append(f"{path.name}: 텍스트를 추출하지 못했습니다 (스캔 이미지 PDF일 수 있음)")
-        for c in file_chunks:
-            c.id = len(chunks)
-            chunks.append(c)
+    chunks, errors = build_chunks(Path(docs_dir), CACHE_DIR)
     embedder = GeminiEmbedder(gemini_key, CACHE_DIR) if gemini_key else None
     return Retriever(chunks, embedder), errors
 
