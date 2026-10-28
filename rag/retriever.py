@@ -108,8 +108,8 @@ def _cosine(a: list[float], b: list[float]) -> float:
 class Retriever:
     def __init__(self, chunks: list[Chunk], embedder: GeminiEmbedder | None = None):
         self.chunks = chunks
-        # 조문 제목과 파일명도 검색 대상에 포함
-        self.bm25 = BM25([tokenize(f"{c.source} {c.article or ''} {c.text}") for c in chunks])
+        # 규정명·조문 제목·파일명도 검색 대상에 포함
+        self.bm25 = BM25([tokenize(f"{c.label} {c.text}") for c in chunks])
         self.embedder = embedder
         self.vectors = embedder.embed_documents([c.text for c in chunks]) if embedder and chunks else None
 

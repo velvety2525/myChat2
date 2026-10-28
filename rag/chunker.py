@@ -21,10 +21,11 @@ class Chunk:
     text: str
     article: str | None = None  # 예: "제5조(연차휴가)"
     page: int | None = None
+    title: str | None = None  # 규정집 안의 개별 규정명. 예: "취업규칙(KCS-B-301)"
 
     @property
     def label(self) -> str:
-        parts = [self.source]
+        parts = [self.title or self.source]
         if self.article:
             parts.append(self.article)
         if self.page:
@@ -60,7 +61,9 @@ def chunk_document(doc: Document, start_id: int, size: int = 900, overlap: int =
 
     def add(offset: int, piece: str, article: str | None, chapter: str | None):
         body = piece if not chapter else f"[{chapter}]\n{piece}"
-        chunks.append(Chunk(start_id + len(chunks), doc.source, body, article, doc.page_at(offset)))
+        page = doc.page_at(offset)
+        title = doc.page_titles.get(page) if page else None
+        chunks.append(Chunk(start_id + len(chunks), doc.source, body, article, page, title))
 
     if len(matches) < 2:
         for off, piece in _split_by_size(text, size, overlap):
