@@ -3,7 +3,5 @@ __pycache__/
 .venv/
 .streamlit/secrets.toml
 .env
-# 규정 원본 파일은 저장소에 올리지 않음 (폴더 구조만 유지)
-regulations/*
-!regulations/.gitkeep
-.index_cache/
+# 청크 캐시는 배포 시 첫 로딩을 줄이려고 커밋, 임베딩 캐시는 제외
+.index_cache/embeddings_*

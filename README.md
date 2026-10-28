@@ -25,6 +25,15 @@ streamlit run app.py
 
 `.streamlit/secrets.toml`에 같은 이름으로 넣어도 됩니다. API 키는 저장소에 커밋하지 마세요.
 
+## 배포 (Streamlit Community Cloud)
+
+1. https://share.streamlit.io 에 GitHub 계정으로 로그인 → **Create app** → **Deploy a public app from GitHub**
+2. Repository `velvety2525/myChat2`, Branch `claude/zen-euler-ovu48t`(또는 기본 브랜치), Main file path `app.py` → **Deploy**
+3. 사용자는 사이드바에 각자 API 키를 입력해 사용합니다.
+
+- 앱이 공개 상태일 때 **Secrets에 API 키를 넣으면 누구나 그 키로 요금을 쓰게 됩니다.** 키를 미리 넣어 두려면 앱 설정에서 열람자를 제한(Sharing → Only specific people)하세요.
+- 규정 파일과 `.index_cache/chunks_*.json`(미리 읽어 둔 결과)을 함께 커밋하면 클라우드에서 앱이 깨어날 때 PDF를 다시 읽지 않습니다. 규정 파일을 바꾸면 로컬에서 한 번 실행한 뒤 새로 생긴 캐시 파일도 같이 커밋하세요.
+
 ## 동작 방식
 
 - **청킹**: 규정 문서는 `제N조(제목)` 단위로 자르고, 소속 `제N장`을 함께 붙입니다. 조문 구조가 없거나 조문이 길면 약 900자 단위로 겹쳐 자릅니다. PDF는 페이지 번호를 기록합니다.

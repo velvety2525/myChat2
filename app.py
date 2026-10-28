@@ -30,9 +30,12 @@ def _secret(name: str) -> str:
 
 
 def load_chunks_cached(path: Path, root: Path) -> list[Chunk]:
-    """큰 PDF는 읽는 데 수 분이 걸리므로 파일별 청크 결과를 디스크에 캐시한다."""
-    stat = path.stat()
-    key = hashlib.sha1(f"v1|{path.relative_to(root)}|{stat.st_mtime}|{stat.st_size}".encode()).hexdigest()
+    """큰 PDF는 읽는 데 수 분이 걸리므로 파일별 청크 결과를 디스크에 캐시한다.
+
+    키는 파일 내용 해시라서 git clone 후(수정 시각이 바뀌어도) 저장소에 커밋된 캐시를 그대로 쓸 수 있다.
+    """
+    content_hash = hashlib.sha1(path.read_bytes()).hexdigest()
+    key = hashlib.sha1(f"v1|{path.relative_to(root)}|{content_hash}".encode()).hexdigest()
     cache_file = CACHE_DIR / f"chunks_{key}.json"
     try:
         return [Chunk(**c) for c in json.loads(cache_file.read_text(encoding="utf-8"))]
